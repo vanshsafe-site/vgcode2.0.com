@@ -1,4 +1,3 @@
-
 :root {
   --editor-bg: #1e1e1e;
   --editor-sidebar: #252526;
@@ -482,4 +481,13 @@ input[type="text"] {
 
 .fade-in {
   animation: fadeIn 0.3s ease-out;
+}
+
+#clear-cache-btn:hover {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+#clear-cache-btn i {
+  margin-right: 5px;
 }

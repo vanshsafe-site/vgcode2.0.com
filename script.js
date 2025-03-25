@@ -1,4 +1,3 @@
-
 // File data structure
 class FileData {
   constructor(id, name, language, content = '') {
@@ -198,6 +197,11 @@ class CodeEditor {
         e.preventDefault();
         this.saveToLocalStorage();
       }
+    });
+    
+    // Clear cache
+    document.getElementById('clear-cache-btn').addEventListener('click', () => {
+      this.clearCache();
     });
   }
   
@@ -818,6 +822,32 @@ class CodeEditor {
     setTimeout(() => {
       toast.remove();
     }, 3000);
+  }
+  
+  async clearCache() {
+    try {
+      // Clear localStorage
+      localStorage.clear();
+      
+      // Clear application cache if supported
+      if (window.caches) {
+        const cacheKeys = await caches.keys();
+        await Promise.all(cacheKeys.map(key => caches.delete(key)));
+      }
+      
+      // Visual feedback
+      const button = document.getElementById('clear-cache-btn');
+      const originalContent = button.innerHTML;
+      button.innerHTML = '<i class="fas fa-check"></i><span>Cleared!</span>';
+      
+      setTimeout(() => {
+        button.innerHTML = originalContent;
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+      alert('Failed to clear cache');
+    }
   }
 }
 
