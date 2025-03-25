@@ -19,6 +19,7 @@ class CodeEditor {
     this.editorTabs = document.getElementById('editor-tabs');
     this.editorArea = document.getElementById('editor-area');
     this.previewFrame = document.getElementById('preview-frame');
+    this.previewContainer = document.getElementById('preview-container');
     this.newFileBtn = document.getElementById('new-file-btn');
     this.modal = document.getElementById('new-file-modal');
     this.closeModal = document.querySelector('.close');
@@ -26,7 +27,6 @@ class CodeEditor {
     this.fileNameInput = document.getElementById('file-name');
     this.fileTypeButtons = document.querySelectorAll('.file-type-btn');
     this.togglePreviewBtn = document.getElementById('toggle-preview-btn');
-    this.previewContainer = document.getElementById('preview-container');
     this.saveBtn = document.getElementById('save-btn');
     this.exportBtn = document.getElementById('export-btn');
     this.importBtn = document.getElementById('import-btn');
@@ -46,6 +46,7 @@ class CodeEditor {
     this.activeFileType = 'html';
     this.isDarkTheme = true;
     this.rightClickedFileId = null;
+    this.isPreviewVisible = true;
     
     // Default files
     this.defaultFiles = [
@@ -187,6 +188,15 @@ class CodeEditor {
         this.finishRenameFile();
       } else if (e.key === 'Escape') {
         this.hideRenameOverlay();
+      }
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Save: Ctrl+S
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        this.saveToLocalStorage();
       }
     });
   }
@@ -339,6 +349,13 @@ class CodeEditor {
       fileItem.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         this.showContextMenu(e, file.id);
+      });
+      
+      // Double click to rename
+      fileName.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        this.rightClickedFileId = file.id;
+        this.startRenameFile();
       });
       
       this.fileList.appendChild(fileItem);
@@ -521,15 +538,27 @@ class CodeEditor {
   
   // Toggle functions
   togglePreview() {
-    const isVisible = !this.previewContainer.classList.contains('hidden');
+    this.isPreviewVisible = !this.isPreviewVisible;
     
-    if (isVisible) {
-      this.previewContainer.classList.add('hidden');
-      this.togglePreviewBtn.innerHTML = '<i class="fas fa-eye"></i><span>Show Preview</span>';
-    } else {
-      this.previewContainer.classList.remove('hidden');
+    if (this.isPreviewVisible) {
+      this.previewContainer.style.display = 'flex';
       this.togglePreviewBtn.innerHTML = '<i class="fas fa-eye-slash"></i><span>Hide Preview</span>';
+      // Adjust editor width
+      this.updateLayout();
       this.updatePreview();
+    } else {
+      this.previewContainer.style.display = 'none';
+      this.togglePreviewBtn.innerHTML = '<i class="fas fa-eye"></i><span>Show Preview</span>';
+      // Make editor full width
+      this.updateLayout();
+    }
+  }
+  
+  updateLayout() {
+    if (this.isPreviewVisible) {
+      document.getElementById('editor-container').style.width = '50%';
+    } else {
+      document.getElementById('editor-container').style.width = '100%';
     }
   }
   
@@ -575,7 +604,6 @@ class CodeEditor {
   
   hideContextMenu() {
     this.contextMenu.style.display = 'none';
-    this.rightClickedFileId = null;
   }
   
   // Rename handlers
@@ -612,8 +640,21 @@ class CodeEditor {
       return;
     }
     
-    this.renameFile(this.rightClickedFileId, this.renameInput.value.trim());
+    // Ensure we retain the extension if the user removes it
+    const file = this.files.find(file => file.id === this.rightClickedFileId);
+    let newName = this.renameInput.value.trim();
+    
+    // If extension was removed, add it back
+    if (file && !newName.includes('.')) {
+      const oldExtension = file.name.split('.').pop();
+      if (oldExtension) {
+        newName += '.' + oldExtension;
+      }
+    }
+    
+    this.renameFile(this.rightClickedFileId, newName);
     this.hideRenameOverlay();
+    this.showToast(`Renamed to ${newName}`);
   }
   
   hideRenameOverlay() {
@@ -624,23 +665,32 @@ class CodeEditor {
   saveToLocalStorage() {
     const projectData = {
       files: this.files,
-      activeFileId: this.activeFileId
+      activeFileId: this.activeFileId,
+      isPreviewVisible: this.isPreviewVisible
     };
     
-    localStorage.setItem('code-editor-project', JSON.stringify(projectData));
+    localStorage.setItem('vg-code-project', JSON.stringify(projectData));
     
     // Show feedback
     this.showToast('Project saved to cache');
   }
   
   loadFromLocalStorage() {
-    const savedProject = localStorage.getItem('code-editor-project');
+    const savedProject = localStorage.getItem('vg-code-project');
     
     if (savedProject) {
       try {
         const projectData = JSON.parse(savedProject);
         this.files = projectData.files;
         this.activeFileId = projectData.activeFileId;
+        this.isPreviewVisible = projectData.isPreviewVisible !== undefined ? projectData.isPreviewVisible : true;
+        
+        // Apply the preview visibility state
+        if (!this.isPreviewVisible) {
+          this.previewContainer.style.display = 'none';
+          this.togglePreviewBtn.innerHTML = '<i class="fas fa-eye"></i><span>Show Preview</span>';
+          document.getElementById('editor-container').style.width = '100%';
+        }
         
         // Show feedback
         this.showToast('Project loaded from cache');
