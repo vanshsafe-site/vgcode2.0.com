@@ -1,10 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useEditor } from '../context/EditorContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileData } from '@/context/EditorContext';
 import { cn } from '@/lib/utils';
-import { FileIcon, FileText, FileCss, FileCode } from 'lucide-react';
+import { File, FileText, FileCode } from 'lucide-react';
 
 const CodeEditor: React.FC = () => {
   const { files, activeFileId, updateFile, setActiveFile } = useEditor();
@@ -34,15 +33,14 @@ const CodeEditor: React.FC = () => {
       case 'html':
         return <FileText size={14} className="text-orange-400" />;
       case 'css':
-        return <FileCss size={14} className="text-blue-400" />;
+        return <File size={14} className="text-blue-400" />;
       case 'js':
         return <FileCode size={14} className="text-yellow-400" />;
       default:
-        return <FileIcon size={14} />;
+        return <File size={14} />;
     }
   };
 
-  // Handle tab key to insert spaces instead of changing focus
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -52,7 +50,6 @@ const CodeEditor: React.FC = () => {
       e.currentTarget.value = value.substring(0, start) + '  ' + value.substring(end);
       e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + 2;
       
-      // Update the file content
       if (activeFileId) {
         updateFile(activeFileId, e.currentTarget.value);
       }

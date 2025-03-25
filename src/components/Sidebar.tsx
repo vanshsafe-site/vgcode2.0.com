@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import {
   File,
   FileCode,
-  FileCss,
+  FileJson,
   FileText,
   MoreVertical,
   Edit,
@@ -30,7 +30,7 @@ const FileIcon: React.FC<FileIconProps> = ({ language, className }) => {
     case 'html':
       return <FileText size={16} className={cn('text-orange-400', className)} />;
     case 'css':
-      return <FileCss size={16} className={cn('text-blue-400', className)} />;
+      return <File size={16} className={cn('text-blue-400', className)} />;
     case 'js':
       return <FileCode size={16} className={cn('text-yellow-400', className)} />;
     default:
