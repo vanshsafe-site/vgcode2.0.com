@@ -38,6 +38,7 @@ class CodeEditor {
     this.renameOverlay = document.getElementById('rename-overlay');
     this.renameInput = document.getElementById('rename-input');
     this.cancelRenameBtn = document.getElementById('cancel-rename-btn');
+    this.fullscreenBtn = document.getElementById('fullscreen-preview');
     
     // State
     this.files = [];
@@ -202,6 +203,16 @@ class CodeEditor {
     // Clear cache
     document.getElementById('clear-cache-btn').addEventListener('click', () => {
       this.clearCache();
+    });
+    
+    // Fullscreen button
+    this.fullscreenBtn.addEventListener('click', this.toggleFullscreen.bind(this));
+    
+    // Add escape key listener to exit fullscreen
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.previewContainer.classList.contains('fullscreen')) {
+        this.toggleFullscreen();
+      }
     });
   }
   
@@ -847,6 +858,20 @@ class CodeEditor {
     } catch (error) {
       console.error('Error clearing cache:', error);
       alert('Failed to clear cache');
+    }
+  }
+  
+  toggleFullscreen() {
+    const isFullscreen = this.previewContainer.classList.toggle('fullscreen');
+    
+    // Update the button icon
+    const icon = this.fullscreenBtn.querySelector('i');
+    if (isFullscreen) {
+      icon.classList.remove('fa-expand');
+      icon.classList.add('fa-compress');
+    } else {
+      icon.classList.remove('fa-compress');
+      icon.classList.add('fa-expand');
     }
   }
 }
